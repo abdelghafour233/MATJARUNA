@@ -28,36 +28,38 @@ const DEFAULT_SETTINGS: AppSettings = {
   nameServers: 'ns1.hosting.com, ns2.hosting.com'
 };
 
+const getSafeStorage = (key: string, defaultValue: any) => {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : defaultValue;
+  } catch (e) {
+    console.warn(`Error reading ${key} from storage:`, e);
+    return defaultValue;
+  }
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('products');
-    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
-  });
-
-  const [orders, setOrders] = useState<Order[]>(() => {
-    const saved = localStorage.getItem('orders');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [settings, setSettings] = useState<AppSettings>(() => {
-    const saved = localStorage.getItem('settings');
-    return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
-  });
-
+  const [products, setProducts] = useState<Product[]>(() => getSafeStorage('products', INITIAL_PRODUCTS));
+  const [orders, setOrders] = useState<Order[]>(() => getSafeStorage('orders', []));
+  const [settings, setSettings] = useState<AppSettings>(() => getSafeStorage('settings', DEFAULT_SETTINGS));
   const [cart, setCart] = useState<CartItem[]>([]);
 
   useEffect(() => {
-    localStorage.setItem('products', JSON.stringify(products));
+    try {
+      localStorage.setItem('products', JSON.stringify(products));
+    } catch (e) {}
   }, [products]);
 
   useEffect(() => {
-    localStorage.setItem('orders', JSON.stringify(orders));
+    try {
+      localStorage.setItem('orders', JSON.stringify(orders));
+    } catch (e) {}
   }, [orders]);
 
   useEffect(() => {
-    localStorage.setItem('settings', JSON.stringify(settings));
-    // Simulate Pixel Injections
-    if (settings.fbPixelId) console.log(`Injected FB Pixel: ${settings.fbPixelId}`);
+    try {
+      localStorage.setItem('settings', JSON.stringify(settings));
+    } catch (e) {}
   }, [settings]);
 
   const addToCart = (product: Product) => {
